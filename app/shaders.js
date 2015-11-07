@@ -38,10 +38,26 @@ var SHADERS = (function() {
             return kernel;
         }
 
+        function makeGaussianKernel(rad, iwidth2) {
+            var kernel = new Array(SIZE * SIZE);
+            var i = 0, sum = 0;
+            for (var y = -rad; y <= rad; y++) {
+                for (var x = -rad; x <= rad; x++) {
+                    var dist2 = (x*x + y*y) * iwidth2;
+                    sum += kernel[i++] = Math.exp(-dist2);
+                }
+            }
+            for (i = 0; i < kernel.length; i++) {
+                kernel[i] /= sum;
+            }
+            return kernel;
+        }
+
 
         var sep = 0.4;
         var kernel1 = makeKernel(RAD, -2, sep * RAD);
         var kernel2 = makeKernel(RAD, sep * RAD, RAD + 0.5);
+        var kernel3 = makeGaussianKernel(RAD, 0.1);
 
         var res = '';
         function genConvolution(acc, data, kernel) {
@@ -56,8 +72,11 @@ var SHADERS = (function() {
             if (Math.abs(chech-1) > 0.00001) throw "arrgh";
         }
 
-        genConvolution('iInner', 'kern', kernel1);
+        genConvolution('iInner', 'kern', kernel3);
         genConvolution('iOuter', 'kern', kernel2);
+
+        //genConvolution('iInner', 'kern', kernel1);
+        //genConvolution('iOuter', 'kern', kernel2);
         return res;
     }
 
@@ -87,10 +106,16 @@ var SHADERS = (function() {
             "uniform vec4 uCoeff2;",
             "uniform float uDt;",
             "float velocity(float neig, float self, float center) {",
+            /*
             "  neig *= 8.0;",
             "  return  (self- center) * uCoeff2.x + mix(",
             "    min((neig - uCoeff.x) , (uCoeff.y - neig)),",
             "    min((neig - uCoeff.z) , (uCoeff.w - neig)), self);",
+            */
+            "  float delta = ;",
+            "  float delta = self - center;",
+            "  float delta = self - center;",
+            "  return (self - center) * uCoeff.x + (self - center)*(self - center) * uCoeff.y + (self - center)*(self - center)*(self - center) * uCoeff.z ;",
             "}",
             "void main() {",
             "  float center = texture2D(uState, vPosition).r;",
